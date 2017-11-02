@@ -18,7 +18,6 @@ args = parser.parse_args()
 
 def on_message(client, userdata, message):
     userdata["messages_received"] += 1
-    userdata["data"][message.topic] = message.payload
     if userdata["show_topics"]:
         print "{}: {}".format(message.topic, message.payload)
     else:
@@ -26,11 +25,7 @@ def on_message(client, userdata, message):
 
 user_data = {
     "show_topics": args.verbose,
-    "time_start": time.time(),
-    "timeout": args.timeout,
-    "max_messages": args.max_messages,
-    "messages_received":0,
-    "data": {},
+    "messages_received": 0,
 }
 
 client = Client(userdata=user_data)
@@ -44,6 +39,7 @@ client.on_message = on_message
 if not subs_result == MQTT_ERR_SUCCESS:
     raise Exception("Subscription error {}".format(subs_result))
 
+time_start = time.time()
 while True:
     client.loop()
 
@@ -55,6 +51,6 @@ while True:
         break
 
     # check time limit
-    time_spent = time.time() - user_data["time_start"]
+    time_spent = time.time() - time_start
     if args.timeout and time_spent >= args.timeout:
         break
